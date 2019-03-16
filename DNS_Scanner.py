@@ -10,9 +10,7 @@ if interface not in netifaces.interfaces():
     print("Bad interface. Check interface.conf")
     sys.exit(1)
 
-cap = pyshark.LiveCapture(interface='wlp3s0', bpf_filter='udp port 53')
-
-cap.sniff(packet_count=10)
+cap = pyshark.LiveCapture(interface=interface, bpf_filter='udp port 53')
 
 def print_dns_info(pkt):
     with open('domains.txt', 'a+', newline='') as d:
