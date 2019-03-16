@@ -1,6 +1,7 @@
 Store domains in SQLite db
     * Don't scan ones we've already seen, unless the last scan date is old (> 1 week)
     * Writing and reading concurrently from 2 connections
+    * Domain sanitization policy for database and logging
 interface.conf dummy value and git management
 Domain scanner parses report for malicious URL and gen report/alert
 Make it possible for non-root users

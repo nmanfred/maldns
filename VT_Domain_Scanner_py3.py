@@ -136,17 +136,31 @@ def scan_expired_or_unscanned_domains(conn):
 
         c = conn.cursor()
         c.execute('SELECT * FROM dns_queries WHERE last_scan IS NULL OR last_scan = \'\';')
-        for row in c:
+        new_rows = c.fetchall()
+        c.close()
+
+        for row in new_rows:
             domain = row[2]
             print("MY URL HERE IS {}".format(domain))
 
             try:
                 delay = DomainScanner(domain, client)
                 data = DomainReportReader(domain, delay, client)
-                #dataWriter = csv.writer(rfile, delimiter = ',')
-                #dataWriter.writerow(data)
-                c.execute('UPDATE dns_queries SET last_scan=?,num_positive=?,total_scans=?,permalink=? WHERE url=?;',(data[0], data[2], data[3], data[4], data[1]))
+
+                c = conn.cursor()
+                print("MY BIG DATA {}".format(data))
+                print("MY BIG URL {}".format(data[1]))
+
+                domainDirty = data[1].replace('[.]', '.')
+                print("MY DIRTY URL {}".format(domainDirty))
+
+                #my_stmt = 'UPDATE dns_queries SET last_scan={},num_positive={},total_scans={},permalink={} WHERE url={};'.format(data[0], data[2], data[3], data[4], data[1].strip())
+                #print(my_stmt)
+                #c.execute(my_stmt)
+                c.execute('UPDATE dns_queries SET last_scan=?,num_positive=?,total_scans=?,permalink=? WHERE url=?;',(data[0], data[2], data[3], data[4], domainDirty))
                 conn.commit()
+                c.close()
+
                 time.sleep(15)  # wait for VT API rate limiting
             except Exception as err:  # keeping it
                 print('Encountered an error but scanning will continue.', err)

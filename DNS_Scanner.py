@@ -19,6 +19,7 @@ def store_dns_info(pkt, conn):
             if entry is None: # insert new entry
                 c.execute('INSERT INTO dns_queries(url) VALUES (?);', (qry_name,))
                 conn.commit()
+            c.close()
     except Exception as e:
         print('Exception {}:'.format(e))
 
