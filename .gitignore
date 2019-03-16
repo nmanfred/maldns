@@ -3,4 +3,8 @@
 .AppleDouble
 .LSOverride
 
+*.swp
+*.pyc
+*.pyo
+
 vtapikey
