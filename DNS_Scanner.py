@@ -4,7 +4,7 @@ import sys
 from db_utils import create_connection, create_table
 
 
-def store_dns_info(pkt):
+def store_dns_info(pkt, conn):
     """ Grab DNS query URLs and store them in the dns_queries table
     :param pkt: A packet 
     :return:
@@ -19,11 +19,11 @@ def store_dns_info(pkt):
             if entry is None: # insert new entry
                 c.execute('INSERT INTO dns_queries(url) VALUES (?);', (qry_name,))
                 conn.commit()
-    except sqlite3.Error as e:
-        print('entry_get_id() Error %s:' % e.args[0])
+    except Exception as e:
+        print('Exception {}:'.format(e))
 
 
-if __name__ == '__main__':
+def dns_capture():
     conn = create_connection("./maldns.db")
     if conn == None:
         sys.exit(1)
@@ -40,7 +40,8 @@ if __name__ == '__main__':
 
     cap = pyshark.LiveCapture(interface=interface, bpf_filter='udp port 53')
 
-    cap.apply_on_packets(store_dns_info, timeout=100)
+    for pkt in cap.sniff_continuously():
+        store_dns_info(pkt, conn)
 
     conn.close()
 
