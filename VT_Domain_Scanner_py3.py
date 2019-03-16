@@ -10,18 +10,7 @@ import time
 import requests
 import csv
 import os
-
-
-with open('vtapikey', 'r', newline ='') as apikeyfile:
-    apikey = apikeyfile.read().strip()
-    print(apikey)
-
-requests.urllib3.disable_warnings()
-client = requests.session()
-client.verify = False
-domainErrors = []
-delay = {}
-
+from db_utils import create_connection
 
 # scan the domain to ensure results are fresh
 def DomainScanner(domain):
@@ -135,43 +124,56 @@ def DomainReportReader(domain, delay):
         time.sleep(10)
         DomainReportReader(domain, delay)
 
-exists = os.path.isfile('./results.csv')
+if __name__ == '__main__':
+    conn = create_connection("./maldns.db")
+    if conn == None:
+        sys.exit(1)
 
-try: 
-    rfile = open('results.csv', 'a', newline='')
-    # write header if results file does not exist
-    if not exists:
-        header = ['Scan Date', 'Domain', '# of Positive Scans', 'Total Scans', 'Permalink']
-        headerWriter = csv.DictWriter(rfile, fieldnames=header)
-        headerWriter.writeheader()
+    with open('vtapikey', 'r', newline ='') as apikeyfile:
+        apikey = apikeyfile.read().strip()
 
-except IOError as ioerr:
-    print('Please ensure the file is closed.')
-    print(ioerr)
+    requests.urllib3.disable_warnings()
+    client = requests.session()
+    client.verify = False
+    domainErrors = []
+    delay = {}
+    exists = os.path.isfile('./results.csv')
 
-##### CHANGE TO TEXT FILE PATH. ONE DOMAIN PER LINE! #####
-try:
-    # read domains from file and pass them to DomainScanner and DomainReportReader
-    with open('domains.txt', 'r') as infile:  # keeping the file open because it shouldnt
-                                              # be opened/modified during reading anyway
-        for domain in infile:
-            domain = domain.strip()
-            try:
-                delay = DomainScanner(domain)
-                data = DomainReportReader(domain, delay)
-                dataWriter = csv.writer(rfile, delimiter = ',')
-                dataWriter.writerow(data)
-                time.sleep(15)  # wait for VT API rate limiting
-            except Exception as err:  # keeping it
-                print('Encountered an error but scanning will continue.', err)
-                pass
+    try: 
+        rfile = open('results.csv', 'a', newline='')
+        # write header if results file does not exist
+        if not exists:
+            header = ['Scan Date', 'Domain', '# of Positive Scans', 'Total Scans', 'Permalink']
+            headerWriter = csv.DictWriter(rfile, fieldnames=header)
+            headerWriter.writeheader()
 
-except IOError as ioerr:
-    print('Please ensure the file is closed.')
-    print(ioerr)
+    except IOError as ioerr:
+        print('Please ensure the file is closed.')
+        print(ioerr)
 
-# inform the user if there were any errors encountered
-count = len(domainErrors)
-if count > 0:
-    print('There were {!s} errors scanning domains'.format(count))
-    print(domainErrors)
+    ##### CHANGE TO TEXT FILE PATH. ONE DOMAIN PER LINE! #####
+    try:
+        # read domains from file and pass them to DomainScanner and DomainReportReader
+        with open('domains.txt', 'r') as infile:  # keeping the file open because it shouldnt
+                                                # be opened/modified during reading anyway
+            for domain in infile:
+                domain = domain.strip()
+                try:
+                    delay = DomainScanner(domain)
+                    data = DomainReportReader(domain, delay)
+                    dataWriter = csv.writer(rfile, delimiter = ',')
+                    dataWriter.writerow(data)
+                    time.sleep(15)  # wait for VT API rate limiting
+                except Exception as err:  # keeping it
+                    print('Encountered an error but scanning will continue.', err)
+                    pass
+
+    except IOError as ioerr:
+        print('Please ensure the file is closed.')
+        print(ioerr)
+
+    # inform the user if there were any errors encountered
+    count = len(domainErrors)
+    if count > 0:
+        print('There were {!s} errors scanning domains'.format(count))
+        print(domainErrors)
