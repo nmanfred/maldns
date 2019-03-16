@@ -1,0 +1,5 @@
+Store domains in SQLite db
+interface.conf dummy value and git management
+Domain scanner parses report for malicious URL and gen report/alert
+Make it possible for non-root users
+Check portability between platforms
