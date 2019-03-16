@@ -1,4 +1,5 @@
 Store domains in SQLite db
+    * Don't scan ones we've already seen, unless the last scan date is old (> 1 week)
 interface.conf dummy value and git management
 Domain scanner parses report for malicious URL and gen report/alert
 Make it possible for non-root users

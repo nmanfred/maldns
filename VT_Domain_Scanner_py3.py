@@ -141,8 +141,8 @@ try:
     rfile = open('results.csv', 'a', newline='')
     # write header if results file does not exist
     if not exists:
-        header = ['Scan Date', 'Domain', 'Detection Ratio', 'Vendor', 'Category', 'Permalink']
-        headerWriter = csv.DictWriter(resfile, fieldnames=header)
+        header = ['Scan Date', 'Domain', '# of Positive Scans', 'Total Scans', 'Permalink']
+        headerWriter = csv.DictWriter(rfile, fieldnames=header)
         headerWriter.writeheader()
 
 except IOError as ioerr:
