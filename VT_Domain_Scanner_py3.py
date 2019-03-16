@@ -10,12 +10,14 @@ import time
 import requests
 import csv
 import os
+import config
 from db_utils import create_connection
 
 # scan the domain to ensure results are fresh
-def DomainScanner(domain):
+def DomainScanner(domain, client):
     url = 'https://www.virustotal.com/vtapi/v2/url/scan'
-    params = {'apikey': apikey, 'url': domain}
+    params = {'apikey': config.apikey, 'url': domain}
+    delay = {}
 
     # attempt connection to VT API and save response as r
     try:
@@ -59,7 +61,7 @@ def DomainScanner(domain):
               'Public-API-is-too-low-for-me-how-can-I-have-access-to-a-higher-quota-')
 
 
-def DomainReportReader(domain, delay):
+def DomainReportReader(domain, delay, client):
     # sleep 15 to control requests/min to API. Public APIs only allow for 4/min threshold,
     # you WILL get a warning email to the owner of the account if you exceed this limit.
     # Private API allows for tiered levels of queries/second.
@@ -71,7 +73,7 @@ def DomainReportReader(domain, delay):
             time.sleep(10)
 
     url = 'https://www.virustotal.com/vtapi/v2/url/report'
-    params = {'apikey': apikey, 'resource': domain}
+    params = {'apikey': config.apikey, 'resource': domain}
 
     # attempt connection to VT API and save response as r
     try:
@@ -124,33 +126,54 @@ def DomainReportReader(domain, delay):
         time.sleep(10)
         DomainReportReader(domain, delay)
 
-if __name__ == '__main__':
+def scan_expired_or_unscanned_domains(conn):
+    try:
+        requests.urllib3.disable_warnings()
+        client = requests.session()
+        client.verify = False
+        domainErrors = []
+        delay = {}
+
+        c = conn.cursor()
+        c.execute('SELECT * FROM dns_queries WHERE last_scan IS NULL OR last_scan = \'\';')
+        for row in c:
+            domain = row[2]
+            print("MY URL HERE IS {}".format(domain))
+
+            try:
+                delay = DomainScanner(domain, client)
+                data = DomainReportReader(domain, delay, client)
+                #dataWriter = csv.writer(rfile, delimiter = ',')
+                #dataWriter.writerow(data)
+                c.execute('UPDATE dns_queries SET last_scan=?,num_positive=?,total_scans=?,permalink=? WHERE url=?;',(data[0], data[2], data[3], data[4], data[1]))
+                conn.commit()
+                time.sleep(15)  # wait for VT API rate limiting
+            except Exception as err:  # keeping it
+                print('Encountered an error but scanning will continue.', err)
+                pass
+
+    except Exception as e:
+       print(e)
+
+def vt_lookup():
     conn = create_connection("./maldns.db")
     if conn == None:
         sys.exit(1)
 
-    with open('vtapikey', 'r', newline ='') as apikeyfile:
-        apikey = apikeyfile.read().strip()
+    #with open('vtapikey', 'r', newline ='') as apikeyfile:
+    #    apikey = apikeyfile.read().strip()
 
-    requests.urllib3.disable_warnings()
-    client = requests.session()
-    client.verify = False
-    domainErrors = []
-    delay = {}
-    exists = os.path.isfile('./results.csv')
+    #exists = os.path.isfile('./results.csv')
 
-    try: 
-        rfile = open('results.csv', 'a', newline='')
-        # write header if results file does not exist
-        if not exists:
-            header = ['Scan Date', 'Domain', '# of Positive Scans', 'Total Scans', 'Permalink']
-            headerWriter = csv.DictWriter(rfile, fieldnames=header)
-            headerWriter.writeheader()
+    #rfile = open('results.csv', 'a', newline='')
+    ## write header if results file does not exist
+    #if not exists:
+    #    header = ['Scan Date', 'Domain', '# of Positive Scans', 'Total Scans', 'Permalink']
+    #    headerWriter = csv.DictWriter(rfile, fieldnames=header)
+    #    headerWriter.writeheader()
+    scan_expired_or_unscanned_domains(conn)
 
-    except IOError as ioerr:
-        print('Please ensure the file is closed.')
-        print(ioerr)
-
+"""
     ##### CHANGE TO TEXT FILE PATH. ONE DOMAIN PER LINE! #####
     try:
         # read domains from file and pass them to DomainScanner and DomainReportReader
@@ -177,3 +200,5 @@ if __name__ == '__main__':
     if count > 0:
         print('There were {!s} errors scanning domains'.format(count))
         print(domainErrors)
+"""
+
