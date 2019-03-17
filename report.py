@@ -28,12 +28,12 @@ if __name__== "__main__":
     elif args.dump_flagged:
        print("ID Time Domain NumFlagged NumTested VirusTotalLink")
        for row in rows:
-           if row[3] > 0: #NumFlagged
+           if row[3] is not None and row[3] > 0: #NumFlagged
                print("{} {} {} {} {} {}".format(row[0],row[1],row[2],row[3],row[4],row[5]))
     elif args.dump_nsa:
        print("ID Time Domain NumFlagged NumTested VirusTotalLink")
        for row in rows:
-           if row[3] > 9000: #NumFlagged
+           if row[3] is not None and row[3] > 9000: #NumFlagged
                print("{} {} {} {} {} {}".format(row[0],row[1],row[2],row[3],row[4],row[5]))
     else:
        parser.print_help()
