@@ -20,6 +20,10 @@ def is_whitelisted(domain):
     :param domain: A domain (unsanitized)
     :return: True if domain is whitelisted, False otherwise
     """
+    # Invalid TLDs that are seen in DNS requests, dont store these
+    if domain.endswith(".home") or domain.endswith(".local"):
+        return True
+
     fn = "./lists/whitelist"
     with open(fn, "r") as f:
         wl_domain_list = f.read().splitlines()

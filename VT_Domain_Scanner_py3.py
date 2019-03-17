@@ -101,7 +101,7 @@ def DomainReportReader(domain, delay, client, should_report):
                 logging.warning('Report for {!r} is not ready yet. Please check the site\'s report.'.format(domain))
 
             else:
-                logging.info('Report is ready for', domain)
+                logging.info('Report is ready for {}'.format(domain))
                 should_report = True
 
             permalink = jsonResponse['permalink']

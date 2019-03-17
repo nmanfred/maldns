@@ -1,6 +1,25 @@
 Bug: this happens, then pause of 30 seconds after
     There was an error submitting the domain critero[.]home for scanning.
     Invalid URL, the scan request was not queued
+    .home and .local now WL'd so won't be entered into DB, but in general 30 second pause is bad
+
+    in domainscanner with url: 
+    vfjxanvijnc.home
+    2019-03-17 21:10:25.658265
+    error with url: 
+    vfjxanvijnc.home
+    2019-03-17 21:10:25.835789
+    should_report
+    False
+    in domainscanner with url: 
+    axvhjbjrm.home
+    2019-03-17 21:10:55.839649
+    error with url: 
+    axvhjbjrm.home
+    2019-03-17 21:10:56.015455
+    should_report
+    False
+
 Better names
 Track repeated calls to malicious domains
 Associate malicious DNS requests with application
