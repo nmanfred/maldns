@@ -1,3 +1,7 @@
+# maldns
+
+`maldns` is a tool for analyzing DNS queries with VirusTotal. It monitors a host's network interface for DNS traffic, extracts domains, and passes them to the VirusTotal API. It builds a database of reports for the domains that can be inspected for suspicious activity.
+
 # Setup
 
 Install `tshark`, `python3`, and `pip3`. Then:
@@ -14,10 +18,19 @@ Obtain a VirusTotal API key and paste into file named `vtapikey` in the `maldns`
 
 # Running
 
-python3 main.py # Note: tshark may require sudo/admin privileges depending on your system configuration
+Use the following command. It will collect and analyze domains from the DNS traffic generated in the course of your normal internet usage. (Note: tshark may require sudo/admin privileges depending on your system configuration)
+
+```
+python3 main.py 
+```
 
 # Using
 
+To check the database for potentially dangerous domains:
+
+```
+python3 report.py
+```
 
 # Notes
 

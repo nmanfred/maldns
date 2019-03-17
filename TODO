@@ -1,8 +1,8 @@
-Store domains in SQLite db
-    * Writing and reading concurrently from 2 connections
 Domain scanner parses report for malicious URL and gen report/alert
 Check portability between platforms
 Initialize on startup, daemonize
 Write information to log file
 Better names
 Make file with make clean, make run, make test
+Track repeated calls to malicious domains
+Associate malicious DNS requests with application
