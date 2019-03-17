@@ -19,7 +19,7 @@ def getDirtyDomain(domain):
     return domain.replace('[.]', '.')
 
 # scan the domain to ensure results are fresh
-def DomainScanner(domain, client):
+def DomainScanner(domain, client, should_report):
     url = 'https://www.virustotal.com/vtapi/v2/url/scan'
     domainDirty = getDirtyDomain(domain)
     params = {'apikey': config.apikey, 'url': domainDirty}
@@ -39,22 +39,19 @@ def DomainScanner(domain, client):
             jsonResponse = r.json()
             # print error if the scan had an issue
             if jsonResponse['response_code'] is not 1:
-                print('There was an error submitting the domain for scanning.')
+                print('There was an error submitting the domain {} for scanning.'.format(domain))
                 print(jsonResponse['verbose_msg'])
             elif jsonResponse['response_code'] == -2:
                 print('{!s} is queued for scanning.'.format(domain))
                 delay[domain] = 'queued'
             else:
                 print('{!s} was scanned successfully.'.format(domain))
+                should_report = True
 
         except ValueError:
             print('There was an error when scanning {!s}. Adding domain to error list....'.format(domain))
-            domainErrors.append(domain) # XXX
+            should_report = False
 
-        # return domain errors for notifying user when script completes
-        virustotal_rate_limit()
-
-        return delay
 
     # API TOS issue handling
     elif r.status_code == 204:
@@ -62,8 +59,13 @@ def DomainScanner(domain, client):
         print('https://support.virustotal.com/hc/en-us/articles/115002118525-The-4-requests-minute-limitation-of-the-'
               'Public-API-is-too-low-for-me-how-can-I-have-access-to-a-higher-quota-')
 
+    # return domain errors for notifying user when script completes
+    virustotal_rate_limit()
 
-def DomainReportReader(domain, delay, client):
+    return (delay, should_report)
+
+
+def DomainReportReader(domain, delay, client, should_report):
     # sleep 15 to control requests/min to API. Public APIs only allow for 4/min threshold,
     # you WILL get a warning email to the owner of the account if you exceed this limit.
     # Private API allows for tiered levels of queries/second.
@@ -91,7 +93,7 @@ def DomainReportReader(domain, delay, client):
             jsonResponse = r.json()
             # print error if the scan had an issue
             if jsonResponse['response_code'] is 0:
-                print('There was an error submitting the domain for scanning.')
+                print('There was an error submitting the domain {} for scanning.'.format(domain))
                 pass
 
             elif jsonResponse['response_code'] == -2:
@@ -99,23 +101,22 @@ def DomainReportReader(domain, delay, client):
 
             else:
                 print('Report is ready for', domain)
+                should_report = True
 
-            # print(jsonResponse)
             permalink = jsonResponse['permalink']
             scandate = jsonResponse['scan_date']
             positives = jsonResponse['positives']
             total = jsonResponse['total']
 
             data = [scandate, domain, positives, total, permalink]
-            return data
 
         except ValueError:
-            print('There was an error when scanning {!s}. Adding domain to error list....'.format(domain))
-            domainErrors.append(domain)
+            print('There was an error when scanning {!s}.'.format(domain))
+            should_report = False
 
         except KeyError:
-            print('There was an error when scanning {!s}. Adding domain to error list....'.format(domain))
-            domainErrors.append(domain)
+            print('There was an error when scanning {!s}.'.format(domain))
+            should_report = False
 
     # API TOS issue handling
     elif r.status_code == 204:
@@ -123,14 +124,15 @@ def DomainReportReader(domain, delay, client):
         print('https://support.virustotal.com/hc/en-us/articles/115002118525-The-4-requests-minute-limitation-of-the-'
               'Public-API-is-too-low-for-me-how-can-I-have-access-to-a-higher-quota-')
         time.sleep(10)
-        DomainReportReader(domain, delay)
+        data, should_report = DomainReportReader(domain, delay, client, should_report)
+    
+    return (data, should_report)
 
 def scan_expired_or_unscanned_domains(conn):
     try:
         requests.urllib3.disable_warnings()
         client = requests.session()
         client.verify = False
-        domainErrors = []
         delay = {}
 
         c = conn.cursor()
@@ -142,12 +144,16 @@ def scan_expired_or_unscanned_domains(conn):
             domain = row[2]
 
             try:
-                delay = DomainScanner(domain, client)
-                data = DomainReportReader(domain, delay, client)
+                should_report = False
+                delay, should_report = DomainScanner(domain, client, should_report)
+                if should_report:
+                    should_report = False
+                    data, should_report = DomainReportReader(domain, delay, client, should_report)
 
-                c = conn.cursor()
-                c.execute('UPDATE dns_queries SET last_scan=?,num_positive=?,total_scans=?,permalink=? WHERE url=?;',(data[0], data[2], data[3], data[4], domain))
-                conn.commit()
+                    c = conn.cursor()
+                    if should_report:
+                        c.execute('UPDATE dns_queries SET last_scan=?,num_positive=?,total_scans=?,permalink=? WHERE url=?;',(data[0], data[2], data[3], data[4], domain))
+                        conn.commit()
                 c.close()
 
                 virustotal_rate_limit()
