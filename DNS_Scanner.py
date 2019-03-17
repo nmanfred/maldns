@@ -15,9 +15,10 @@ def store_dns_info(pkt, conn):
             c = conn.cursor()
             c.execute('SELECT * FROM dns_queries WHERE url=?;', (qry_name,) )
             entry = c.fetchone()
-
+            # sanitize domain in database for safety
+            qry_sani = qry_name.replace('.', '[.]')
             if entry is None: # insert new entry
-                c.execute('INSERT INTO dns_queries(url) VALUES (?);', (qry_name,))
+                c.execute('INSERT INTO dns_queries(url) VALUES (?);', (qry_sani,))
                 conn.commit()
             c.close()
     except Exception as e:
@@ -45,13 +46,3 @@ def dns_capture():
         store_dns_info(pkt, conn)
 
     conn.close()
-
-
-
-
-
-
-
-
-
-
