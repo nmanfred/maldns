@@ -1,7 +1,6 @@
 Store domains in SQLite db
     * Don't scan unless the last scan date is old (> 1 week)
     * Writing and reading concurrently from 2 connections
-interface.conf dummy value and git management
 Domain scanner parses report for malicious URL and gen report/alert
 Check portability between platforms
 Add whitelist/BL
@@ -10,5 +9,4 @@ Verify wl/bl - remove stuff
 Initialize on startup, daemonize
 Write information to log file
 Better names
-No prints on first run after deleting maldns.db and pycache?
 Make file with make clean, make run, make test

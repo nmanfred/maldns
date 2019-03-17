@@ -161,6 +161,10 @@ def scan_expired_or_unscanned_domains(conn):
 def vt_lookup():
     conn = create_connection("./maldns.db")
     if conn == None:
+        print ("No database connection, exiting.")
         sys.exit(1)
-    scan_expired_or_unscanned_domains(conn)
 
+    while True:
+        scan_expired_or_unscanned_domains(conn)
+
+    print ("Done scanning")
