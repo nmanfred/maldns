@@ -3,13 +3,12 @@ Store domains in SQLite db
     * Writing and reading concurrently from 2 connections
 interface.conf dummy value and git management
 Domain scanner parses report for malicious URL and gen report/alert
-Make it possible for non-root users
 Check portability between platforms
-Cmd to clear DNS cache
 Add whitelist/BL
     * separate folder for wl and bl
 Verify wl/bl - remove stuff
-Instructions for submodules
+Initialize on startup, daemonize
+Write information to log file
 Better names
 No prints on first run after deleting maldns.db and pycache?
 Make file with make clean, make run, make test
