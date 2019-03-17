@@ -7,26 +7,26 @@ import config
 from db_utils import create_connection, create_table
 
 
-def is_subdomain_in_domain_list(subdomain, domain_list):
-    return any(map((lambda x: subdomain.endswith(x) and len(x) > 0), domain_list))
-
+def is_domain_in_list(domain, thelist):
+    if domain in thelist:
+        return True
+    if domain.startswith("www."):
+        return domain[4:] in thelist
+    return False
 
 def is_whitelisted(domain):
     """ Determine if a domain is whitelisted
     :param domain: A domain (unsanitized)
     :return: True if domain is whitelisted, False otherwise
     """
-    for filename in os.listdir('./domain-list/data/'):
-        # For now, all data files from submodule except nsa are WLd
-        if filename != 'nsa':
-            fn = "./domain-list/data/{}".format(filename)
-            with open(fn, "r") as f:
-                wl_domain_list = f.read().splitlines()
-                # check if any in whitelist end domain, 
-                # if so, consider domain whitelisted
-                if is_subdomain_in_domain_list(domain, wl_domain_list):
-                        print("Domain {} is whitelisted.".format(domain.replace('.', '[.]')))
-                        return True
+    fn = "./lists/whitelist"
+    with open(fn, "r") as f:
+        wl_domain_list = f.read().splitlines()
+        # check if any in whitelist end domain, 
+        # if so, consider domain whitelisted
+        if is_domain_in_list(domain, wl_domain_list):
+                print("Domain {} is whitelisted.".format(domain.replace('.', '[.]')))
+                return True
     return False
 
 
@@ -38,11 +38,11 @@ def is_blacklisted(domain):
     # For now, only nsa is our BL
     # Let's let VT scan the malware domains, and use this just to catch
     # domains that may be clean on VT but are known to be associated with the NSA
-    with open('./domain-list/data/nsa', "r") as f:
+    with open('./lists/blacklist', "r") as f:
         bl_domain_list = f.read().splitlines()
         # check if any in blacklist end in domain, 
         # if so, consider domain blacklisted
-        if is_subdomain_in_domain_list(domain, bl_domain_list):
+        if is_domain_in_list(domain, bl_domain_list):
             print("Domain {} is NSA.".format(domain.replace('.', '[.]')))
             return True
         else:

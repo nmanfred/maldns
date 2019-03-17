@@ -3,9 +3,6 @@ Store domains in SQLite db
     * Writing and reading concurrently from 2 connections
 Domain scanner parses report for malicious URL and gen report/alert
 Check portability between platforms
-Add whitelist/BL
-    * separate folder for wl and bl
-Verify wl/bl - remove stuff
 Initialize on startup, daemonize
 Write information to log file
 Better names
