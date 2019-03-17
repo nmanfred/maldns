@@ -32,6 +32,8 @@ To check the database for potentially dangerous domains:
 python3 report.py
 ```
 
+Run time logs can be found in maldns.log.
+
 # Notes
 
 * You may want to clear your cache before running in case it already contains suspicious entries.

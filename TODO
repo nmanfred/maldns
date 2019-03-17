@@ -1,4 +1,6 @@
-Write information to log file
+Bug: this happens, then pause of 30 seconds after
+    There was an error submitting the domain critero[.]home for scanning.
+    Invalid URL, the scan request was not queued
 Better names
 Track repeated calls to malicious domains
 Associate malicious DNS requests with application

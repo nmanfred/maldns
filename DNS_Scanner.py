@@ -4,6 +4,7 @@ import sys
 import datetime
 import os
 import config
+import logging
 from db_utils import create_connection, create_table
 
 
@@ -25,7 +26,7 @@ def is_whitelisted(domain):
         # check if any in whitelist end domain, 
         # if so, consider domain whitelisted
         if is_domain_in_list(domain, wl_domain_list):
-                print("Domain {} is whitelisted.".format(domain.replace('.', '[.]')))
+                logging.info("Domain {} is whitelisted.".format(domain.replace('.', '[.]')))
                 return True
     return False
 
@@ -43,7 +44,7 @@ def is_blacklisted(domain):
         # check if any in blacklist end in domain, 
         # if so, consider domain blacklisted
         if is_domain_in_list(domain, bl_domain_list):
-            print("Domain {} is NSA.".format(domain.replace('.', '[.]')))
+            logging.info("Domain {} is NSA.".format(domain.replace('.', '[.]')))
             return True
         else:
             return False
@@ -74,7 +75,7 @@ def store_dns_info(pkt, conn):
                     conn.commit()
             c.close()
     except Exception as e:
-        print('Exception {}:'.format(e))
+        logging.warning('Exception {}:'.format(e))
 
 
 def dns_capture():
@@ -85,7 +86,7 @@ def dns_capture():
     create_table(conn)
 
     if config.interface not in netifaces.interfaces():
-        print("Bad interface. Check config.py")
+        logging.error("Bad interface. Check config.py")
         sys.exit(1)
 
     cap = pyshark.LiveCapture(interface=config.interface, bpf_filter='udp port 53')
