@@ -8,6 +8,12 @@ import os
 import config
 from db_utils import create_connection
 
+def virustotal_rate_limit():
+    if config.private_access:
+        time.sleep(1)
+    else:
+        time.sleep(15)
+
 def getDirtyDomain(domain):
     # unsanitize domain
     return domain.replace('[.]', '.')
@@ -46,7 +52,8 @@ def DomainScanner(domain, client):
             domainErrors.append(domain) # XXX
 
         # return domain errors for notifying user when script completes
-        time.sleep(15)  ############### IF YOU HAVE A PRIVATE ACCESS YOU CAN CHANGE THIS TO 1 ###################
+        virustotal_rate_limit()
+
         return delay
 
     # API TOS issue handling
@@ -143,7 +150,7 @@ def scan_expired_or_unscanned_domains(conn):
                 conn.commit()
                 c.close()
 
-                time.sleep(15)  # wait for VT API rate limiting
+                virustotal_rate_limit()
             except Exception as err:  # keeping it
                 print('Encountered an error but scanning will continue.', err)
                 pass

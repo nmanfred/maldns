@@ -3,6 +3,7 @@ import netifaces
 import sys
 import datetime
 import os
+import config
 from db_utils import create_connection, create_table
 
 
@@ -83,15 +84,11 @@ def dns_capture():
 
     create_table(conn)
 
-    interface = ''
-    with open('interface.conf', 'r', newline='') as f:
-        interface = f.read().strip()
-
-    if interface not in netifaces.interfaces():
-        print("Bad interface. Check interface.conf")
+    if config.interface not in netifaces.interfaces():
+        print("Bad interface. Check config.py")
         sys.exit(1)
 
-    cap = pyshark.LiveCapture(interface=interface, bpf_filter='udp port 53')
+    cap = pyshark.LiveCapture(interface=config.interface, bpf_filter='udp port 53')
 
     for pkt in cap.sniff_continuously():
         store_dns_info(pkt, conn)
