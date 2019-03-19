@@ -13,6 +13,8 @@ if __name__ == '__main__':
 
     time.sleep(1)
 
-    logging.info("Starting VirusTotal Scan")
-    vt_scan = Process(target = vt_lookup, args=())
-    vt_scan.start()
+    if dns_scan.is_alive():
+        logging.info("Starting VirusTotal Scan")
+        vt_scan = Process(target = vt_lookup, args=())
+        vt_scan.start()
+
