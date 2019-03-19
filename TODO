@@ -23,3 +23,5 @@ Bug: this happens, then pause of 30 seconds after
 Better names
 Track repeated calls to malicious domains
 Associate malicious DNS requests with application
+ToDo in VT
+Terminate program if bad iface

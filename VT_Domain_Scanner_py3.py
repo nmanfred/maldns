@@ -42,9 +42,10 @@ def DomainScanner(domain, client, should_report):
             if jsonResponse['response_code'] is not 1:
                 logging.warning('There was an error submitting the domain {} for scanning.'.format(domain))
                 logging.warning(jsonResponse['verbose_msg'])
-            elif jsonResponse['response_code'] == -2: # XXX - should report?
+            elif jsonResponse['response_code'] == -2: 
                 logging.info('{!s} is queued for scanning.'.format(domain))
                 delay[domain] = 'queued'
+                should_report = True
             else:
                 logging.info('{!s} was scanned successfully.'.format(domain))
                 should_report = True
@@ -97,7 +98,11 @@ def DomainReportReader(domain, delay, client, should_report):
                 logging.warning('There was an error submitting the domain {} for scanning.'.format(domain))
                 pass
 
-            elif jsonResponse['response_code'] == -2: # XXX should_report?
+            # If report isn't ready, we catch it on the next call to 
+            # scan_expired_or_unscanned_domains...not ideal to scan 2x. 
+            # TODO: Consider DB entry saying it's scanned but not ready yet to 
+            # skip scanning multiple times.
+            elif jsonResponse['response_code'] == -2: 
                 logging.warning('Report for {!r} is not ready yet. Please check the site\'s report.'.format(domain))
 
             else:
