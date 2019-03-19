@@ -9,8 +9,6 @@ Install `tshark`, `python3`, and `pip3`. Then:
 ```
 git clone git@github.com:nmanfred/maldns.git
 cd maldns/
-git submodule init
-git submodule update
 pip3 install -r requirements.txt
 ```
 
